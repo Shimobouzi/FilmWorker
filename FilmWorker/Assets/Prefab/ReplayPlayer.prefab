@@ -97,7 +97,7 @@ MonoBehaviour:
   gravity: -20
   groundLayer:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 192
   skinWidth: 0.05
 --- !u!1001 &5763621698415615059
 PrefabInstance:

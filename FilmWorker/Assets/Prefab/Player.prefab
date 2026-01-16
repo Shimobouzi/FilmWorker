@@ -114,7 +114,7 @@ MonoBehaviour:
   gravity: -20
   groundLayer:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 192
   skinWidth: 0.05
 --- !u!114 &6744817197984276647
 MonoBehaviour:

@@ -1,5 +1,4 @@
 using System.IO;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class JsonController : MonoBehaviour
@@ -38,7 +37,7 @@ public class JsonController : MonoBehaviour
 
     public int GetFileCount()
     {
-        // ƒtƒHƒ‹ƒ_‚ª‚Ü‚¾‚È‚¯‚ê‚Î0Œ‚Æ‚µ‚Ä•Ô‚·
+        // ãƒ•ã‚©ãƒ«ãƒ€ãŒç„¡ã‘ã‚Œã° 0 ã¨ã™ã‚‹
         if (!Directory.Exists(replayFolder)) return 0;
         string[] files = Directory.GetFiles(replayFolder, "*.json");
         return files.Length;
@@ -46,6 +45,15 @@ public class JsonController : MonoBehaviour
 
     public void DeleteAllReplays()
     {
+        if (string.IsNullOrEmpty(replayFolder))
+            replayFolder = Path.Combine(Application.persistentDataPath, "Replays");
+
+        if (!Directory.Exists(replayFolder))
+        {
+            Directory.CreateDirectory(replayFolder);
+            return;
+        }
+
         string[] files = Directory.GetFiles(replayFolder, "*.json");
 
         foreach (string file in files)

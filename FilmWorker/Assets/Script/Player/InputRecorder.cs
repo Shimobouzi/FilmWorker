@@ -16,10 +16,10 @@ public class InputRecorder : MonoBehaviour
 
     float timer;
     IInputProvider input;
+    bool isRecording;
 
     void Start()
     {
-        // HumanInputProvider ‚ðŽ©“®‚ÅƒZƒbƒg
         SetInput(GetComponent<IInputProvider>());
     }
 
@@ -27,38 +27,59 @@ public class InputRecorder : MonoBehaviour
     {
         input = provider;
     }
+
     void Update()
     {
+        if (!isRecording) return;
+        if (input == null) return;
+
         Record(input);
     }
 
-    public void Record(IInputProvider input)
+    void Record(IInputProvider current)
     {
         timer += Time.deltaTime;
 
         frames.Add(new InputFrame
         {
             time = timer,
-            horizontal = input.GetHorizontal(),
-            jump = input.GetJumpDown(),
-            action = input.GetActionDown()
+            horizontal = current.GetHorizontal(),
+            jump = current.GetJumpDown(),
+            action = false,
         });
     }
 
-    public ReplayData CreateReplay()
+    public void BeginRecording()
     {
+        frames.Clear();
+        timer = 0f;
+        isRecording = true;
+    }
+
+    public ReplayData EndRecording()
+    {
+        isRecording = false;
+
         return new ReplayData
         {
             frames = new List<InputFrame>(frames),
-            startTime = 0,
+            startTime = 0f,
             endTime = timer,
-            speed = 1f
+            speed = 1f,
+            loop = false,
         };
     }
-    public void SaveCurrentReplay()
+
+    public int EndRecordingAndSave()
     {
-        ReplayData data = CreateReplay();
+        var data = EndRecording();
+
+        var nextId = JsonController.instance.GetFileCount();
         JsonController.instance.SaveFile(data);
+        return nextId;
     }
+
+    public bool IsRecording => isRecording;
+    public float GetDurationSeconds() => timer;
 }
 
