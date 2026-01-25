@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class KakoimaDB : MonoBehaviour
+public class FWDB : MonoBehaviour
 {
-    public static KakoimaDB Instance;
+    public static FWDB Instance;
 
     private int gameCount = 0;
     public int getGameCount() { return gameCount; }

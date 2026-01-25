@@ -7,22 +7,29 @@ public class PlayerController : MonoBehaviour
     public float jumpPower = 8f;
     public float gravity = -20f;
 
-    [Header("Collision")]
+    [Header("Collision (3D)")]
     public LayerMask groundLayer;
     public float skinWidth = 0.05f;
 
+    [Header("Plane Lock")]
+    [Tooltip("XY平面固定。Z座標を初期値に固定します。")]
+    public bool lockZ = true;
+
     float yVelocity;
+    float lockedZ;
+
     IInputProvider input;
-    BoxCollider2D col;
+    BoxCollider col;
 
     void Awake()
     {
-        col = GetComponent<BoxCollider2D>();
+        col = GetComponent<BoxCollider>();
+        if (lockZ) lockedZ = transform.position.z;
     }
 
     void Start()
     {
-        // HumanInputProvider �������ŃZ�b�g
+        // HumanInputProvider 等が付いている想定
         SetInput(GetComponent<IInputProvider>());
     }
 
@@ -39,19 +46,26 @@ public class PlayerController : MonoBehaviour
 
         HandleHorizontal(dt);
         HandleVertical(dt);
+
+        if (lockZ)
+        {
+            var p = transform.position;
+            p.z = lockedZ;
+            transform.position = p;
+        }
     }
 
     void HandleHorizontal(float dt)
     {
         float h = input.GetHorizontal();
-        if (h == 0) return;
+        if (Mathf.Approximately(h, 0f)) return;
 
-        Vector2 dir = Vector2.right * Mathf.Sign(h);
+        Vector3 dir = Vector3.right * Mathf.Sign(h);
         float distance = Mathf.Abs(h * moveSpeed * dt);
 
         if (!CheckCollision(dir, distance))
         {
-            transform.position += (Vector3)(dir * distance);
+            transform.position += dir * distance;
         }
     }
 
@@ -59,8 +73,8 @@ public class PlayerController : MonoBehaviour
     {
         bool grounded = IsGrounded();
 
-        if (grounded && yVelocity < 0)
-            yVelocity = -2f; // �n�ʂɋz��������
+        if (grounded && yVelocity < 0f)
+            yVelocity = -2f; // 接地時の張り付き
 
         if (grounded && input.GetJumpDown())
             yVelocity = jumpPower;
@@ -68,7 +82,7 @@ public class PlayerController : MonoBehaviour
         yVelocity += gravity * dt;
 
         float move = yVelocity * dt;
-        Vector2 dir = Vector2.up * Mathf.Sign(move);
+        Vector3 dir = Vector3.up * Mathf.Sign(move);
         float distance = Mathf.Abs(move);
 
         if (!CheckCollision(dir, distance))
@@ -77,35 +91,41 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // �V�� or �n�ʂɓ��������瑬�x���Z�b�g
-            yVelocity = 0;
+            // 天井/床に当たったら速度リセット（スナップは未実装）
+            yVelocity = 0f;
         }
     }
 
     bool IsGrounded()
     {
-        Bounds bounds = col.bounds;
-        Vector2 origin = new Vector2(bounds.center.x, bounds.min.y);
-        float distance = 0.1f;
+        Bounds b = col.bounds;
 
-        RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, distance, groundLayer);
-        return hit.collider != null;
+        // 足元から下方向へ短くRaycast
+        Vector3 origin = b.center;
+        origin.y = b.min.y + Mathf.Max(0.001f, skinWidth);
+
+        float distance = 0.1f + skinWidth;
+
+        return Physics.Raycast(origin, Vector3.down, distance, groundLayer, QueryTriggerInteraction.Ignore);
     }
 
-    bool CheckCollision(Vector2 dir, float distance)
+    bool CheckCollision(Vector3 dir, float distance)
     {
-        Bounds bounds = col.bounds;
-        Vector2 origin = bounds.center;
+        Bounds b = col.bounds;
 
-        RaycastHit2D hit = Physics2D.BoxCast(
-            origin,
-            bounds.size,
-            0f,
-            dir,
+        Vector3 center = b.center;
+        Vector3 halfExtents = b.extents;
+
+        // BoxCast は「開始時点でめり込んでいる」ケースに弱いので、
+        // skinWidth を距離側に足し、extents はそのままにしておく（最小改修）
+        return Physics.BoxCast(
+            center,
+            halfExtents,
+            dir.normalized,
+            Quaternion.identity,
             distance + skinWidth,
-            groundLayer
+            groundLayer,
+            QueryTriggerInteraction.Ignore
         );
-
-        return hit.collider != null;
     }
 }

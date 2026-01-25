@@ -28,6 +28,8 @@
 ### 2.0 ターン進行（確認事項）
 - 行動 → 編集 → 行動（ここで **リプレイが出現**し、プレイヤーは **スタート位置から**やり直す。ステージはリセット扱い）
 - Stage開始（シーン開始）時に、保存済みリプレイJSON（persistentDataPath/Replays）を全消去する
+  - `JsonController.DeleteAllReplays()` は存在する
+  - **どのタイミングで誰が呼ぶか（Turn/Scene開始フック）は未実装**
 
 ### 2.1 行動ターン（Action Turn）
 共通ルール:
@@ -37,7 +39,7 @@
 - **Cut ボタン**: 映画のカット＝行動および記録の終了を示す
 
 補足:
-- `Action` と `Cut` は同じボタンを状態で使い分ける（開始待ちでは Action、行動中は Cut）。
+- `Action` と `Cut` は同じボタンを状態で使い分ける（開始待ちでは Action、行動中は Cut）。 
 
 #### 2.1.1 1度目の行動ターン
 - Action ボタン → 自身の行動 → 行動の記憶 → Cut ボタン
@@ -92,13 +94,13 @@
 - `PlayerController` は入力元を意識せず **`IInputProvider` のみ**を参照する（方針）
 
 ### 4.2 移動システム（仕様）
-- Rigidbody を使用しない
-- Transform + Collider(2D) + Raycast/BoxCast 等で自前物理を組む（決定論重視）
-- 目的: リプレイ再生時のズレを減らす
+- Rigidbody は使用しない（リプレイのズレ防止・決定論寄りの挙動を重視）
+- Transform + Collider（3D） + Raycast/BoxCast 等で自前物理を組む（決定論重視）
+- **移動はXY平面固定**（Z座標は固定）
 
-※ 具体実装の確定は `Assets/Script/Player/PlayerController.cs` を正とする。
+---
 
-### 4.3 操作割り当て（確定）
+## 4.3 操作割り当て（確定）
 #### キーボード（マウス使用なし）
 - 移動: WASD
 - ジャンプ: Space
@@ -145,8 +147,8 @@
   - 範囲内に対象がいない場合: 何もしない（no-op）
 - 表示:
   - 現在の「指示対象ゴースト」を **強調表示**する
-    - 3D の場合は「メッシュ複製 + 少し拡大 + 単色マテリアル（FrontCull）」でアウトライン表示する（シェーダ非依存）
-  - 対象が変わったら強調表示も追従し、範囲外になったら解除する
+    - 3D方式: 「メッシュ複製 + 少し拡大 + 単色マテリアル（FrontCull）」でアウトライン表示（シェーダ依存を避ける）
+    - 実装候補: `Assets/Script/Shader/MeshOutlineHighlighter3D.cs`
 
 ### 6.2 ゴーストの再生開始（現行実装）
 - 行動ターン開始時に、存在する全てのゴーストを「最初（編集済み startTime）」へ戻して再生し直す
@@ -155,73 +157,18 @@
 ---
 
 ## 7. リプレイ保存（実装上の正）
+- 仕様上は JSON 保存/読込を想定するが、**現状スクリプトが存在しない項目は未実装として扱う**
+- 保存/読込担当（実装された場合）: `Assets/Script/System/JsonController.cs`
+- 保存先（実装された場合）: `Application.persistentDataPath/Replays/`
+- ファイル名（実装された場合）: `replay{n}.json`
 - 保存/読込担当: `Assets/Script/System/JsonController.cs`
 - 保存先: `Application.persistentDataPath/Replays/`
 - ファイル名: `replay{n}.json`
+- 仕様上は JSON 保存/読込を想定するが、**現状スクリプトが存在しない項目は未実装として扱う**
 
 ---
 
-## 8. Scene内オブジェクト構成（現状: Stage.unity）
-※実装・配線の正は `Assets/Scenes/Stage.unity` を参照。
+## 8. Scene内オブジェクト構成（現状）
+※実装・配線の正は `Assets/Scenes/` 配下の `.unity` を参照（編集はしない）ts/Scenes/` 配下の `.unity` を参照（編集はしない）
 
-### 8.1 ルート（抜粋）
-- `Main Camera`（Orthographic、URP追加コンポーネントあり）
-- `Global Light 2D`
-- `Player`（PrefabInstance: `Assets/Prefab/Player.prefab`）
-- `Goal`（暫定: クリア判定用マーカー）
-- `GameManager`（管理オブジェクト）
-  - `ReplayManager`（`replayPrefab` は `Assets/Prefab/ReplayPlayer.prefab` が設定済み）
-  - `JsonController`
-  - `GameManager`
-  - `TurnController`
-- `GroundP` / `Ground`（地形スプライト）
-- `WallP` / `Wall`（壁スプライト）
-
-### 8.2 TurnController のScene配線（現状）
-- `player` / `recorder` は参照が入っている
-- `replayManager` は参照が入っている（同オブジェクトの `ReplayManager`）
-- `actionAction` / `cutAction` / `stopAction` は未設定（Input Actions Editorで作成した `Player/Action` `Player/Cut` `Player/Stop` を割り当てる）
-  - ただし実装側で `HumanInputProvider.actionAction` を起点に ActionMap から `Action/Cut/Stop` を探索するため、未設定でも動く設計にしている（配線は推奨）。
-
-### 8.3 レイヤー注意（要確認）
-- `PlayerController.groundLayer` は Prefab で `Layer 6(Ground) + Layer 7(Wall)` を含むようにしている
-- `Stage.unity` の `Ground` は `Layer 6`、`Wall` は `Layer 7` になっている
-  - 接地判定が意図どおりか、Layerを揃える/groundLayerを修正する
-
----
-
-## 9. Prefab構成（抜粋）
-### 9.1 Player.prefab
-- Root: `Player`
-  - `BoxCollider2D`
-  - `HumanInputProvider`（`InputActionReference` を Inspector で参照）
-  - `PlayerController`
-  - `InputRecorder`
-  - 子オブジェクトに見た目（silhouette）
-
-### 9.2 ReplayPlayer.prefab
-- Root: `ReplayPlayer`
-  - `BoxCollider2D`
-  - `PlayerController`
-  - 子オブジェクトに見た目（silhouette）
-  - `ReplayCharacter` は生成時に追加される（`ReplayManager` が `AddComponent` する）
-
----
-
-## 10. Script構成（現状: Assets/Script）
-- `Assets/Script/System/`
-  - `TurnController`（ターン進行：Action/Cut、2度目以降Stop指示、編集→ゴースト生成）
-  - `ReplayManager`（リプレイ生成/管理、最寄りゴースト探索、生成順）
-  - `JsonController`（リプレイJSON保存/読込）
-  - `GameManager`（現状はシングルトン枠のみ）
-  - `FWSceneManager`（シーン遷移ユーティリティ）
-  - `FWDB`（`KakoimaDB`：カウント保持）
-- `Assets/Script/Player/`
-  - `PlayerController`（自前2D物理＋移動）
-  - `IInputProvider` / `HumanInputProvider` / `ReplayInputProvider`（入力抽象と実装）
-  - `InputRecorder`（入力記録→ReplayData生成→保存）
-  - `ReplayCharacter`（ゴースト再生、停止/再開、アウトライン強調）
-- `Assets/Script/Class/`
-  - `ReplayData`（frames + start/end/speed + loop）
-- `Assets/Script/Shader/`
-  - `OutlineHighlighter`（2D擬似アウトライン）
+- 現状Scene: `Main1.unity` / `SampleScene.unity`
