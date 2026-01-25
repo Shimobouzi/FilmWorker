@@ -20,16 +20,10 @@ public class PlayerController : MonoBehaviour
         col = GetComponent<BoxCollider2D>();
     }
 
-    public void ResetMotion()
-    {
-        yVelocity = 0f;
-    }
-
     void Start()
     {
-        // HumanInputProvider „ÇíËá™Âãï„Åß„Çª„ÉÉ„ÉàÔºà„Åô„Åß„Å´ SetInput Ê∏à„Åø„Å™„Çâ‰∏äÊõ∏„Åç„Åó„Å™„ÅÑÔºâ
-        if (input == null)
-            SetInput(GetComponent<IInputProvider>());
+        // HumanInputProvider Çé©ìÆÇ≈ÉZÉbÉg
+        SetInput(GetComponent<IInputProvider>());
     }
 
     public void SetInput(IInputProvider provider)
@@ -40,7 +34,6 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         if (input == null) return;
-        if (col == null) return;
 
         float dt = Time.deltaTime;
 
@@ -56,7 +49,10 @@ public class PlayerController : MonoBehaviour
         Vector2 dir = Vector2.right * Mathf.Sign(h);
         float distance = Mathf.Abs(h * moveSpeed * dt);
 
-        MoveWithCollision(dir, distance);
+        if (!CheckCollision(dir, distance))
+        {
+            transform.position += (Vector3)(dir * distance);
+        }
     }
 
     void HandleVertical(float dt)
@@ -64,7 +60,7 @@ public class PlayerController : MonoBehaviour
         bool grounded = IsGrounded();
 
         if (grounded && yVelocity < 0)
-            yVelocity = -2f; // Âú∞Èù¢„Å´Âºµ„Çä‰ªò„Åã„Åõ„Çã
+            yVelocity = -2f; // ínñ Ç…ãzíÖÇ≥ÇπÇÈ
 
         if (grounded && input.GetJumpDown())
             yVelocity = jumpPower;
@@ -72,37 +68,32 @@ public class PlayerController : MonoBehaviour
         yVelocity += gravity * dt;
 
         float move = yVelocity * dt;
+        Vector2 dir = Vector2.up * Mathf.Sign(move);
         float distance = Mathf.Abs(move);
-        if (distance <= 0f) return;
 
-        Vector2 dir = move > 0f ? Vector2.up : Vector2.down;
-
-        if (MoveWithCollision(dir, distance))
-            yVelocity = 0f;
+        if (!CheckCollision(dir, distance))
+        {
+            transform.position += Vector3.up * move;
+        }
+        else
+        {
+            // ìVà‰ or ínñ Ç…ìñÇΩÇ¡ÇΩÇÁë¨ìxÉäÉZÉbÉg
+            yVelocity = 0;
+        }
     }
 
     bool IsGrounded()
     {
         Bounds bounds = col.bounds;
-        var distance = skinWidth + 0.05f;
+        Vector2 origin = new Vector2(bounds.center.x, bounds.min.y);
+        float distance = 0.1f;
 
-        var hit = Physics2D.BoxCast(
-            bounds.center,
-            bounds.size,
-            0f,
-            Vector2.down,
-            distance,
-            groundLayer
-        );
-
+        RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, distance, groundLayer);
         return hit.collider != null;
     }
 
-    bool MoveWithCollision(Vector2 dir, float distance)
+    bool CheckCollision(Vector2 dir, float distance)
     {
-        if (distance <= 0f) return false;
-        if (dir == Vector2.zero) return false;
-
         Bounds bounds = col.bounds;
         Vector2 origin = bounds.center;
 
@@ -114,26 +105,6 @@ public class PlayerController : MonoBehaviour
             distance + skinWidth,
             groundLayer
         );
-
-        // „Åô„Åß„Å´„ÇÅ„ÇäËæº„Çì„Åß„ÅÑ„ÇãÂ†¥Âêà„ÅØ„ÄÅË∑ùÈõ¢Ë®àÁÆó„ÅßÊäº„ÅóÊàª„Åô
-        if (hit.collider != null && hit.distance <= 0f)
-        {
-            var separation = col.Distance(hit.collider);
-            if (separation.isOverlapped)
-            {
-                transform.position += (Vector3)(separation.normal * separation.distance);
-                Physics2D.SyncTransforms();
-            }
-
-            return true;
-        }
-
-        float moveDistance = distance;
-        if (hit.collider != null)
-            moveDistance = Mathf.Max(0f, hit.distance - skinWidth);
-
-        if (moveDistance > 0f)
-            transform.position += (Vector3)(dir * moveDistance);
 
         return hit.collider != null;
     }

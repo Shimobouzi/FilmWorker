@@ -1,5 +1,4 @@
 {
-    "version": 1,
     "name": "InputSystem_Actions",
     "maps": [
         {
@@ -92,33 +91,6 @@
                     "type": "Button",
                     "id": "779f845f-6fc2-4a58-85b0-736972c28e21",
                     "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Stop",
-                    "type": "Button",
-                    "id": "a8c6c1d0-63f0-4c50-a28e-6b0a1f4c6b2a",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Action",
-                    "type": "Button",
-                    "id": "2c4a0f74-0f0c-4d2d-bf35-6d61c9cc2d7d",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Cut",
-                    "type": "Button",
-                    "id": "2b7a6c6c-0a2d-4c0c-9d5b-6b7bd9f9a1c9",
-                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -531,72 +503,6 @@
                     "action": "Reset",
                     "isComposite": false,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "6d38c0c9-1db6-4a8a-87c1-6f2e0edb0b54",
-                    "path": "<Keyboard>/j",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard&Mouse",
-                    "action": "Stop",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "1e1b4b1c-3f5b-4c3a-8a2f-5b8e2c7a3f31",
-                    "path": "<Gamepad>/buttonEast",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Gamepad",
-                    "action": "Stop",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "c0d43e6a-3b87-4f7b-9a4c-4cc2c9af6b93",
-                    "path": "<Keyboard>/enter",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard&Mouse",
-                    "action": "Action",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "a3c54a9a-6be1-4c2a-bad0-0d6a2e4b2d11",
-                    "path": "<Gamepad>/rightTrigger",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Gamepad",
-                    "action": "Action",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "b09b0f16-6c9e-4c1f-9e7c-99f49c6e2c10",
-                    "path": "<Keyboard>/enter",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard&Mouse",
-                    "action": "Cut",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "b5a36f29-4df5-4c62-8b0b-8dd5d7fb0f06",
-                    "path": "<Gamepad>/rightTrigger",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Gamepad",
-                    "action": "Cut",
-                    "isComposite": false,
-                    "isPartOfComposite": false
                 }
             ]
         },
@@ -962,23 +868,23 @@
                 },
                 {
                     "name": "",
-                    "id": "6b676c16-37ae-47e4-b4d1-2c9f6e4b15da",
-                    "path": "<Keyboard>/space",
+                    "id": "9e92bb26-7e3b-4ec4-b06b-3c8f8e498ddc",
+                    "path": "*/{Submit}",
                     "interactions": "",
                     "processors": "",
-                    "groups": "Keyboard&Mouse",
+                    "groups": "Keyboard&Mouse;Gamepad;Touch;Joystick;XR",
                     "action": "Submit",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "f3df8c2a-9f2a-4f4b-9f9a-01b7a2c4b6d1",
-                    "path": "<Gamepad>/rightTrigger",
+                    "id": "82627dcc-3b13-4ba9-841d-e4b746d6553e",
+                    "path": "*/{Cancel}",
                     "interactions": "",
                     "processors": "",
-                    "groups": "Gamepad",
-                    "action": "Submit",
+                    "groups": "Keyboard&Mouse;Gamepad;Touch;Joystick;XR",
+                    "action": "Cancel",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
